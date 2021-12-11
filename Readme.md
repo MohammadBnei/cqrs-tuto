@@ -1,0 +1,3 @@
+# Basic CQRS
+
+## Eventstore - NestJS
