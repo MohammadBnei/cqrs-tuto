@@ -1,8 +1,10 @@
-import { Body, Controller, Get, Post, Redirect } from '@nestjs/common';
+import { Body, Controller, Get, Post, Redirect, Res } from '@nestjs/common';
+import { Response } from "nestjs-sse";
 import { getAllPurchases, Purchase } from './views';
 import { v4 as uuid } from 'uuid';
 import { jsonEvent } from '@eventstore/db-client';
 import { client as eventStore } from './event-store';
+import { AppService } from './app.service';
 
 interface CreatePurchaseRequest {
   amount: string;
@@ -15,7 +17,7 @@ interface RefundPurchaseRequest {
 
 @Controller()
 export class AppController {
-  constructor() { }
+  constructor(private readonly AppService: AppService) { }
 
   @Get()
   async getPurchases(): Promise<string> {
@@ -62,6 +64,19 @@ export class AppController {
     return {
       url: '/',
     };
+  }
+
+  @Get('/stream')
+  async streamLive(@Res() res: Response) {
+    this.AppService.subscribtion()
+      .on('data', async ({ event }: any) => {
+        switch (event.type) {
+          case 'ProductRefunded':
+          case 'ProductPurchased':
+            res.sse(`data: ${JSON.stringify(event.data)}`);
+            break;
+        }
+      })
   }
 }
 

@@ -1,4 +1,4 @@
-import { EventStoreDBClient, FORWARDS, START } from "@eventstore/db-client";
+import { EventStoreDBClient, FORWARDS, START, END } from "@eventstore/db-client";
 
 const client = EventStoreDBClient.connectionString(
     "esdb://eventstore:2113?tls=false"
@@ -12,6 +12,10 @@ const connect = async () => {
     });
 }
 
+const subscribe = () => client.subscribeToAll({
+    fromPosition: END,
+})
+
 export {
-    client, connect
+    client, connect, subscribe
 };
